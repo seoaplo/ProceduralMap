@@ -42,7 +42,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual FOnMouseButtonClick OnClick() override;
 
 public:	
 	// Called every frame

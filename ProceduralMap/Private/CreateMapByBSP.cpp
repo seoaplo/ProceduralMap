@@ -66,7 +66,7 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 		}
 	}
 
-	auto& vecList = m_BSP.getLeafList();
+	auto& vecList = m_BSP.getLeafNodePtrArray();
 	for (auto iter = vecList.begin(); iter != vecList.end(); ++iter)
 	{
 		if (nullptr == *iter)
@@ -81,10 +81,10 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 			continue;
 		}
 
-		FVector StartTileNum = FVector((*iter)->m_Rect.m_Pos.x, (*iter)->m_Rect.m_Pos.y, 0);
-		FVector EndTileNum = FVector((*iter)->m_Rect.m_EndPos.x, (*iter)->m_Rect.m_EndPos.y, 0);
+		FVector StartTileNum = FVector((*iter)->mBox2D.Min.X, (*iter)->mBox2D.Min.Y, 0);
+		FVector EndTileNum = FVector((*iter)->mBox2D.Max.X, (*iter)->mBox2D.Max.Y, 0);
 
-		SpawnSection->CreateRoom(this, StartTileNum, EndTileNum, 90);
+		SpawnSection->CreateRoom(this, StartTileNum, EndTileNum, 70);
 		m_vecSection.push_back(SpawnSection);
 	}
 
@@ -146,13 +146,13 @@ void UCreateMapByBSP::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UCreateMapByBSP::CreateBSP()
 {
-	Math::Pos MaxSize;
-	MaxSize.x = m_MaxSize;
-	MaxSize.y = m_MaxSize;
+	FVector2D maxSize;
+	maxSize.X = m_MaxSize;
+	maxSize.Y = m_MaxSize;
 
-	Math::Pos MinimumSize;
-	MinimumSize.x = m_MinimumSize;
-	MinimumSize.y = m_MinimumSize;
+	FVector2D minimumSize;
+	minimumSize.X = m_MinimumSize;
+	minimumSize.Y = m_MinimumSize;
 
-	m_BSP.CreateBSP(MaxSize, MinimumSize, m_RatioStart, m_RatioEnd, m_MaxCutNum);
+	m_BSP.CreateBSP(maxSize, minimumSize, m_RatioStart, m_RatioEnd, m_MaxCutNum);
 }
