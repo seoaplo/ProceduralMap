@@ -31,9 +31,9 @@ void ASection::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTile, FVector En
 	reset();
 
 	FVector StartPos = GetTransform().GetLocation();
-	m_Room = GetWorld()->SpawnActor<ARoom>(ARoom::StaticClass(), StartPos, FRotator::ZeroRotator);
+	mRoom = GetWorld()->SpawnActor<ARoom>(ARoom::StaticClass(), StartPos, FRotator::ZeroRotator);
 
-	if (nullptr == m_Room)
+	if (nullptr == mRoom)
 	{
 		return;
 	}
@@ -45,15 +45,18 @@ void ASection::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTile, FVector En
 	StartTile += CorrectionTileNum;
 	EndTile -= CorrectionTileNum;
 
-	m_Room->CreateRoom(BSPMap, StartTile, EndTile);
+	mRoom->CreateRoom(BSPMap, StartTile, EndTile);
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+
+	mRoom->AttachToActor(this, AttachmentTransformRules);
 }
 void ASection::reset()
 {
-	if (nullptr != m_Room)
+	if (nullptr != mRoom)
 	{
-		m_Room->reset();
-		m_Room->Destroy();
-		m_Room = nullptr;
+		mRoom->reset();
+		mRoom->Destroy();
+		mRoom = nullptr;
 	}
 }
 // Called when the game starts or when spawned

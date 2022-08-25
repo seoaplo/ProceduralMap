@@ -15,10 +15,15 @@ ARoom::ARoom()
 		UBoxComponent* Box = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
 		if (nullptr != Box)
 		{
-			RootComponent = Box;
+			SetRootComponent(Box);
 		}
-
+		else
+		{
+			USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+			SetRootComponent(Root);
+		}
 	}
+	
 
 }
 
@@ -48,6 +53,8 @@ void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTile, FVector EndTi
 			}
 			ConnectTile->WallOff();
 			m_vecTile.push_back(ConnectTile);
+			const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+			ConnectTile->AttachToActor(this, AttachmentTransformRules);
 		}
 	}
 }

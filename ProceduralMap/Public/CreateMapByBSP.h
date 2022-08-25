@@ -13,10 +13,12 @@ class PROCEDURALMAP_API UCreateMapByBSP : public UActorComponent
 {
 	GENERATED_BODY()
 private:
-	BSP_Tree	m_BSP;
-	std::vector<ASection*> m_vecSection;
-	std::vector<APath*> m_vecPath;
-	std::vector<ATile*> m_vecTile;
+	BSP_Tree	mBSP;
+	
+	USceneComponent* mRoot;
+	TArray<ASection*> mLeafNodeSection;
+	TArray<APath*> mPathActorArray;
+	TArray<ATile*> mTileArray;
 
 	int m_MaxSize;
 	int m_MinimumSize;
@@ -31,9 +33,9 @@ public:
 	void reset();
 	ATile* getTile(int Index)
 	{
-		if (Index < m_vecTile.size())
+		if (Index < mTileArray.Num())
 		{
-			return m_vecTile[Index];
+			return mTileArray[Index];
 		}
 		return nullptr;
 	}
@@ -41,9 +43,9 @@ public:
 	ATile* getTile(FVector Pos)
 	{
 		int Index = Pos.X + (getColNum() * Pos.Y);
-		if (Index < m_vecTile.size())
+		if (Index < mTileArray.Num())
 		{
-			return m_vecTile[Index];
+			return mTileArray[Index];
 		}
 		return nullptr;
 	}
@@ -65,17 +67,17 @@ public:
 	void CreateBSP();
 	FVector getTileNum()
 	{
-		return FVector(m_BSP.getColNum(), m_BSP.getRowNum(), 0);
+		return FVector(mBSP.getColNum(), mBSP.getRowNum(), 0);
 	}
 
 	int getColNum()
 	{
-		return m_BSP.getColNum();
+		return mBSP.getColNum();
 	}
 
 	int getRowNum()
 	{
-		return m_BSP.getRowNum();
+		return mBSP.getRowNum();
 	}
 
 };

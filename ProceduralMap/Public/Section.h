@@ -13,7 +13,7 @@ class PROCEDURALMAP_API ASection : public AActor
 {
 	GENERATED_BODY()
 private:
-	ARoom* m_Room;
+	ARoom* mRoom;
 
 public:	
 	// Sets default values for this actor's properties
@@ -22,7 +22,7 @@ public:
 	ASection();
 	const ARoom* const getRoom()
 	{
-		return m_Room;
+		return mRoom;
 	}
 protected:
 	// Called when the game starts or when spawned

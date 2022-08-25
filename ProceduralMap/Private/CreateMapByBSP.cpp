@@ -11,6 +11,8 @@ UCreateMapByBSP::UCreateMapByBSP()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	// ...
+
+	mRoot = CreateDefaultSubobject<USceneComponent>(FName("Root"));
 }
 
 
@@ -22,6 +24,11 @@ void UCreateMapByBSP::BeginPlay()
 }
 void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int RatioEnd, int MaxCutNum)
 {
+	if (nullptr == mRoot)
+	{
+		return;
+	}
+
 	m_MaxSize = MaxSize;
 	m_MinimumSize = MinimumSize;
 	m_RatioStart = RatioStart;
@@ -50,9 +57,9 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 
 	FVector TileSize = SpawnBasicTile->getTileScale();
 
-	for (int RowIndex = 0; RowIndex < m_BSP.getRowNum(); ++RowIndex)
+	for (int RowIndex = 0; RowIndex < mBSP.getRowNum(); ++RowIndex)
 	{
-		for (int ColIndex = 0; ColIndex < m_BSP.getColNum(); ++ColIndex)
+		for (int ColIndex = 0; ColIndex < mBSP.getColNum(); ++ColIndex)
 		{
 			FVector SpawnPos = FVector(ColIndex * TileSize.X, RowIndex * TileSize.Y, 0);
 			ATile* SpawnTile = GetWorld()->SpawnActor<ATile>(Tile, SpawnPos, FRotator::ZeroRotator);
@@ -62,12 +69,13 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 				continue;
 			}
 			SpawnTile->SetPos(FVector(ColIndex, RowIndex, 0));
-			m_vecTile.push_back(SpawnTile);
+			mTileArray.Add(SpawnTile);
 		}
 	}
 
-	auto& vecList = m_BSP.getLeafNodePtrArray();
-	for (auto iter = vecList.begin(); iter != vecList.end(); ++iter)
+	std::vector<BSP_Node*>& NodeArray = mBSP.getLeafNodePtrArray();
+	
+	for (auto iter = NodeArray.begin(); iter != NodeArray.end(); ++iter)
 	{
 		if (nullptr == *iter)
 		{
@@ -84,11 +92,16 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 		FVector StartTileNum = FVector((*iter)->mBox2D.Min.X, (*iter)->mBox2D.Min.Y, 0);
 		FVector EndTileNum = FVector((*iter)->mBox2D.Max.X, (*iter)->mBox2D.Max.Y, 0);
 
+
 		SpawnSection->CreateRoom(this, StartTileNum, EndTileNum, 70);
-		m_vecSection.push_back(SpawnSection);
+
+		(*iter)->mActorPtr = SpawnSection;
+		const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+		SpawnSection->AttachToComponent(mRoot, AttachmentTransformRules); 
+		mLeafNodeSection.Add(SpawnSection);
 	}
 
-	for (int i = 0; i < m_vecSection.size(); i = ++i)
+	for (int i = 0; i < mLeafNodeSection.Num(); i = ++i)
 	{
 		APath* SpawnPath = GetWorld()->SpawnActor<APath>(APath::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 		if (nullptr == SpawnPath)
@@ -96,12 +109,12 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 			continue;
 		}
 
-		int FirstIndex = std::min(i, static_cast<int>(m_vecSection.size() - 1));
-		int SecontIndex = std::min(i + 1, static_cast<int>(m_vecSection.size() - 1));
+		int FirstIndex = std::min(i, static_cast<int>(mLeafNodeSection.Num() - 1));
+		int SecontIndex = std::min(i + 1, static_cast<int>(mLeafNodeSection.Num() - 1));
 
-		if (nullptr != m_vecSection[FirstIndex] && nullptr != m_vecSection[SecontIndex])
+		if (nullptr != mLeafNodeSection[FirstIndex] && nullptr != mLeafNodeSection[SecontIndex])
 		{
-			SpawnPath->CreatePath(this, m_vecSection[FirstIndex]->getRoom(), m_vecSection[SecontIndex]->getRoom());
+			SpawnPath->CreatePath(this, mLeafNodeSection[FirstIndex]->getRoom(), mLeafNodeSection[SecontIndex]->getRoom());
 		}
 	}
 
@@ -110,31 +123,33 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 
 void UCreateMapByBSP::reset()
 {
-	m_BSP.reset();
-	for (auto iter = m_vecSection.begin(); iter != m_vecSection.end(); ++iter)
+	mBSP.reset();
+	for (auto iter = mLeafNodeSection.begin(); iter != mLeafNodeSection.end(); ++iter)
 	{
 		if (nullptr != (*iter))
 		{
 			(*iter)->Destroy();
 		}
 	}
-	m_vecSection.clear();
-	for (auto iter = m_vecTile.begin(); iter != m_vecTile.end(); ++iter)
+	mLeafNodeSection.Reset();
+
+	for (auto iter = mTileArray.begin(); iter != mTileArray.end(); ++iter)
 	{
 		if (nullptr != (*iter))
 		{
 			(*iter)->Destroy();
 		}
 	}
-	m_vecTile.clear();
-	for (auto iter = m_vecPath.begin(); iter != m_vecPath.end(); ++iter)
+	mTileArray.Reset();
+
+	for (auto iter = mPathActorArray.begin(); iter != mPathActorArray.end(); ++iter)
 	{
 		if (nullptr != (*iter))
 		{
 			(*iter)->Destroy();
 		}
 	}
-	m_vecPath.clear();
+	mPathActorArray.Reset();
 
 }
 
@@ -154,5 +169,5 @@ void UCreateMapByBSP::CreateBSP()
 	minimumSize.X = m_MinimumSize;
 	minimumSize.Y = m_MinimumSize;
 
-	m_BSP.CreateBSP(maxSize, minimumSize, m_RatioStart, m_RatioEnd, m_MaxCutNum);
+	mBSP.CreateBSP(maxSize, minimumSize, m_RatioStart, m_RatioEnd, m_MaxCutNum);
 }

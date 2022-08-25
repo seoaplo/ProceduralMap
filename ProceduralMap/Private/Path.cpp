@@ -70,6 +70,8 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 	int SpawnNumY = ceil(TileNum.Y * 0.5f);
 
 	m_vecTile.resize(TileNum.X + (BSPMap->getColNum() * TileNum.Y));
+
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
 	if (TileNum.X > TileNum.Y)
 	{
 		int CorrectionPosX = 0;
@@ -89,6 +91,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 
 			FrontTile->WallOff();
 			m_vecTile[i] = FrontTile;
+			FrontTile->AttachToActor(this, AttachmentTransformRules);
 
 			ATile* BackTile = BSPMap->getTile(BackPos);
 			if (nullptr == BackTile)
@@ -97,6 +100,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 			}
 			BackTile->WallOff();
 			m_vecTile[m_vecTile.size() - i - 1] = BackTile;
+			BackTile->AttachToActor(this, AttachmentTransformRules);
 		}
 
 		int CorrectionPosY = 0;
@@ -116,6 +120,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 
 			FrontTile->WallOff();
 			m_vecTile[SpawnNumX + i] = FrontTile;
+			FrontTile->AttachToActor(this, AttachmentTransformRules);
 
 			ATile* BackTile = BSPMap->getTile(BackPos);
 			if (nullptr == BackTile)
@@ -124,6 +129,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 			}
 			BackTile->WallOff();
 			m_vecTile[m_vecTile.size() - SpawnNumX - i] = BackTile;
+			BackTile->AttachToActor(this, AttachmentTransformRules);
 		}
 	}
 	else
@@ -145,6 +151,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 
 			FrontTile->WallOff();
 			m_vecTile[i] = FrontTile;
+			FrontTile->AttachToActor(this, AttachmentTransformRules);
 
 			ATile* BackTile = BSPMap->getTile(BackPos);
 			if (nullptr == BackTile)
@@ -153,6 +160,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 			}
 			BackTile->WallOff();
 			m_vecTile[m_vecTile.size() - i - 1] = BackTile;
+			BackTile->AttachToActor(this, AttachmentTransformRules);
 		}
 
 		int CorrectionPosX = 0;
@@ -172,6 +180,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 
 			FrontTile->WallOff();
 			m_vecTile[SpawnNumY + i] = FrontTile;
+			FrontTile->AttachToActor(this, AttachmentTransformRules);
 
 			ATile* BackTile = BSPMap->getTile(BackPos);
 			if (nullptr == BackTile)
@@ -180,6 +189,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 			}
 			BackTile->WallOff();
 			m_vecTile[m_vecTile.size() - SpawnNumY - i] = BackTile;
+			BackTile->AttachToActor(this, AttachmentTransformRules);
 		}
 	}
 }
