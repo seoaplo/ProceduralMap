@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "EngineMinimal.h"
 #include "Section.h"
 #include "Path.h"
 #include "Components/ActorComponent.h"
+#include "Floor.h"
 #include "CreateMapByBSP.generated.h"
 
 UCLASS( ClassGroup=(Custom), Blueprintable,  meta=(BlueprintSpawnableComponent) )
@@ -14,11 +15,12 @@ class PROCEDURALMAP_API UCreateMapByBSP : public UActorComponent
 	GENERATED_BODY()
 private:
 	BSP_Tree	mBSP;
-	
+
 	USceneComponent* mRoot;
+	std::vector<Floor>	mFloorArray;
 	TArray<ASection*> mLeafNodeSection;
 	TArray<APath*> mPathActorArray;
-	TArray<ATile*> mTileArray;
+	FVector mTileSize;
 
 	int m_MaxSize;
 	int m_MinimumSize;
@@ -28,26 +30,37 @@ private:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		TSubclassOf<ATile> Tile;
+		TSubclassOf<ATile> mTileClass;
 public:
 	void reset();
-	ATile* getTile(int Index)
+
+	Floor* getFloor(int Index)
 	{
-		if (Index < mTileArray.Num())
+		if (Index < mFloorArray.size())
 		{
-			return mTileArray[Index];
+			return &mFloorArray[Index];
 		}
 		return nullptr;
 	}
 
-	ATile* getTile(FVector Pos)
+	Floor* getFloor(FVector Pos)
 	{
 		int Index = Pos.X + (getColNum() * Pos.Y);
-		if (Index < mTileArray.Num())
+		if (Index < mFloorArray.size())
 		{
-			return mTileArray[Index];
+			return &mFloorArray[Index];
 		}
 		return nullptr;
+	}
+
+	TSubclassOf<ATile> gerTileClass()
+	{
+		return mTileClass;
+	}
+
+	const FVector& getTileSize()
+	{
+		return mTileSize;
 	}
 
 public:	

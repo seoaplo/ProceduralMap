@@ -3,6 +3,7 @@
 
 #include "Room.h"
 #include "CreateMapByBSP.h"
+#include "Floor.h"
 
 // Sets default values
 ARoom::ARoom()
@@ -27,7 +28,7 @@ ARoom::ARoom()
 
 }
 
-void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTile, FVector EndTile)
+void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTilePos, FVector EndTilePos)
 {
 	if (nullptr == RootComponent)
 	{
@@ -40,21 +41,80 @@ void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTile, FVector EndTi
 
 	reset();
 
-	m_RoomSize = StartTile - EndTile;
+	m_RoomSize = StartTilePos - EndTilePos;
+	FBox2D WallPos;
+	WallPos.Min = FVector2D(StartTilePos.X - 1, StartTilePos.Y - 1);
+	WallPos.Max = FVector2D(EndTilePos.X, EndTilePos.Y);
 
-	for (int Row = StartTile.Y; Row < EndTile.Y; ++Row)
+
+	FVector TileSize = BSPMap->getTileSize();
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+
+	for (int Col = WallPos.Min.X; Col <= WallPos.Max.X; ++Col)
 	{
-		for (int Col = StartTile.X; Col < EndTile.X; ++Col)
+		for (int Switch = 0; Switch < 2; ++Switch)
 		{
-			ATile* ConnectTile = BSPMap->getTile(FVector(Col, Row, 0));
-			if (nullptr == ConnectTile)
+			int Row = (Switch == 0) ? WallPos.Min.Y : WallPos.Max.Y;
+
+			Floor* TargetFloor = BSPMap->getFloor(FVector(Col, Row, 0));
+			if (nullptr == TargetFloor)
 			{
 				continue;
 			}
-			ConnectTile->WallOff();
-			m_vecTile.push_back(ConnectTile);
-			const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
-			ConnectTile->AttachToActor(this, AttachmentTransformRules);
+
+			ATile* SpawnTile = TargetFloor->spwanTile(GetWorld());
+
+			if (nullptr == SpawnTile)
+			{
+				continue;
+			}
+			SpawnTile->AttachToActor(this, AttachmentTransformRules);
+			m_vecTile.push_back(SpawnTile);
+		}
+	}
+
+	for (int Row = WallPos.Min.Y; Row < WallPos.Max.Y; ++Row)
+	{
+		for (int Switch = 0; Switch < 2; ++Switch)
+		{
+			int Col = (Switch == 0) ? WallPos.Min.X : WallPos.Max.X;
+
+			Floor* TargetFloor = BSPMap->getFloor(FVector(Col, Row, 0));
+			if (nullptr == TargetFloor)
+			{
+				continue;
+			}
+
+			ATile* SpawnTile = TargetFloor->spwanTile(GetWorld());
+
+			if (nullptr == SpawnTile)
+			{
+				continue;
+			}
+			SpawnTile->AttachToActor(this, AttachmentTransformRules);
+			m_vecTile.push_back(SpawnTile);
+		}
+	}
+
+	for (int Row = StartTilePos.Y ; Row < EndTilePos.Y; ++Row)
+	{
+		for (int Col = StartTilePos.X; Col < EndTilePos.X; ++Col)
+		{
+			Floor* TargetFloor = BSPMap->getFloor(FVector(Col, Row, 0));
+			if (nullptr == TargetFloor)
+			{
+				continue;
+			}
+
+			ATile* SpawnTile = TargetFloor->spwanTile(GetWorld());
+
+			if (nullptr == SpawnTile)
+			{
+				continue;
+			}
+			SpawnTile->WallOff();
+			SpawnTile->AttachToActor(this, AttachmentTransformRules);
+			m_vecTile.push_back(SpawnTile);
 		}
 	}
 }

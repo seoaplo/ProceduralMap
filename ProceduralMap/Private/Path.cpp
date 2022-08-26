@@ -3,6 +3,7 @@
 
 #include "Path.h"
 #include "CreateMapByBSP.h"
+#include "Floor.h"
 
 // Sets default values
 APath::APath()
@@ -43,6 +44,7 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 	{
 		return;
 	}
+	mBSPMap = BSPMap;
 
 	reset();
 
@@ -58,10 +60,10 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 		return;
 	}
 
-	StartPos = StartTile->getPos();
-	EndPos = EndTile->getPos();
+	mStartPos = StartTile->getPos();
+	mEndPos = EndTile->getPos();
 
-	FVector TileNum = EndPos - StartPos;
+	FVector TileNum = mEndPos - mStartPos;
 
 	TileNum.X = abs(TileNum.X);
 	TileNum.Y = abs(TileNum.Y);
@@ -71,126 +73,18 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 
 	m_vecTile.resize(TileNum.X + (BSPMap->getColNum() * TileNum.Y));
 
-	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+	int CorrectionPosX = 0;
+	int CorrectionPosY = 0;
+
 	if (TileNum.X > TileNum.Y)
 	{
-		int CorrectionPosX = 0;
-
-		for (int i = 0; i < SpawnNumX; ++i)
-		{
-			CorrectionPosX = StartPos.X < EndPos.X ? (i + 1) : -(i + 1);
-
-			FVector FrontPos = StartPos + FVector(CorrectionPosX, 0, 0);
-			FVector BackPos = EndPos - FVector(CorrectionPosX, 0, 0);
-
-			ATile* FrontTile = BSPMap->getTile(FrontPos);
-			if (nullptr == FrontTile)
-			{
-				continue;
-			}
-
-			FrontTile->WallOff();
-			m_vecTile[i] = FrontTile;
-			FrontTile->AttachToActor(this, AttachmentTransformRules);
-
-			ATile* BackTile = BSPMap->getTile(BackPos);
-			if (nullptr == BackTile)
-			{
-				continue;
-			}
-			BackTile->WallOff();
-			m_vecTile[m_vecTile.size() - i - 1] = BackTile;
-			BackTile->AttachToActor(this, AttachmentTransformRules);
-		}
-
-		int CorrectionPosY = 0;
-
-		for (int i = 0; i < SpawnNumY; ++i)
-		{
-			CorrectionPosY = StartPos.Y < EndPos.Y ? (i + 1) : -(i + 1);
-
-			FVector FrontPos = StartPos + FVector(CorrectionPosX, CorrectionPosY, 0);
-			FVector BackPos = EndPos - FVector(CorrectionPosX, CorrectionPosY, 0);
-
-			ATile* FrontTile = BSPMap->getTile(FrontPos);
-			if (nullptr == FrontTile)
-			{
-				continue;
-			}
-
-			FrontTile->WallOff();
-			m_vecTile[SpawnNumX + i] = FrontTile;
-			FrontTile->AttachToActor(this, AttachmentTransformRules);
-
-			ATile* BackTile = BSPMap->getTile(BackPos);
-			if (nullptr == BackTile)
-			{
-				continue;
-			}
-			BackTile->WallOff();
-			m_vecTile[m_vecTile.size() - SpawnNumX - i] = BackTile;
-			BackTile->AttachToActor(this, AttachmentTransformRules);
-		}
+		CreatePathDerectionX(SpawnNumX, 0, CorrectionPosX, CorrectionPosY);
+		CreatePathDerectionY(SpawnNumX, SpawnNumY, CorrectionPosX, CorrectionPosY);
 	}
 	else
 	{
-		int CorrectionPosY = 0;
-
-		for (int i = 0; i < SpawnNumY; ++i)
-		{
-			CorrectionPosY = StartPos.Y < EndPos.Y ? (i + 1) : -(i + 1);
-
-			FVector FrontPos = StartPos + FVector(0, CorrectionPosY, 0);
-			FVector BackPos = EndPos - FVector(0, CorrectionPosY, 0);
-
-			ATile* FrontTile = BSPMap->getTile(FrontPos);
-			if (nullptr == FrontTile)
-			{
-				continue;
-			}
-
-			FrontTile->WallOff();
-			m_vecTile[i] = FrontTile;
-			FrontTile->AttachToActor(this, AttachmentTransformRules);
-
-			ATile* BackTile = BSPMap->getTile(BackPos);
-			if (nullptr == BackTile)
-			{
-				continue;
-			}
-			BackTile->WallOff();
-			m_vecTile[m_vecTile.size() - i - 1] = BackTile;
-			BackTile->AttachToActor(this, AttachmentTransformRules);
-		}
-
-		int CorrectionPosX = 0;
-
-		for (int i = 0; i < SpawnNumX; ++i)
-		{
-			CorrectionPosX = StartPos.X < EndPos.X ? (i + 1) : -(i + 1);
-
-			FVector FrontPos = StartPos + FVector(CorrectionPosX, CorrectionPosY, 0);
-			FVector BackPos = EndPos - FVector(CorrectionPosX, CorrectionPosY, 0);
-
-			ATile* FrontTile = BSPMap->getTile(FrontPos);
-			if (nullptr == FrontTile)
-			{
-				continue;
-			}
-
-			FrontTile->WallOff();
-			m_vecTile[SpawnNumY + i] = FrontTile;
-			FrontTile->AttachToActor(this, AttachmentTransformRules);
-
-			ATile* BackTile = BSPMap->getTile(BackPos);
-			if (nullptr == BackTile)
-			{
-				continue;
-			}
-			BackTile->WallOff();
-			m_vecTile[m_vecTile.size() - SpawnNumY - i] = BackTile;
-			BackTile->AttachToActor(this, AttachmentTransformRules);
-		}
+		CreatePathDerectionY(0, SpawnNumY, CorrectionPosX, CorrectionPosY);
+		CreatePathDerectionX(SpawnNumX, SpawnNumY, CorrectionPosX, CorrectionPosY);
 	}
 }
 void APath::CreatePath(UCreateMapByBSP* BSPMap, ARoom* Start, APath* End)
@@ -200,6 +94,105 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, ARoom* Start, APath* End)
 void APath::CreatePath(UCreateMapByBSP* BSPMap, APath* Start, APath* End)
 {
 
+}
+
+void APath::CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY)
+{
+	if (nullptr == mBSPMap)
+	{
+		return;
+	}
+
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+
+	for (int i = 0; i < spawnNumX; ++i)
+	{
+		correntPosX = mStartPos.X < mEndPos.X ? (i + 1) : -(i + 1);
+
+		FVector FrontPos = mStartPos + FVector(correntPosX, correntPosY, 0);
+		FVector BackPos = mEndPos - FVector(correntPosX, correntPosY, 0);
+
+		Floor* MainRoadFloor = mBSPMap->getFloor(FrontPos);
+		if (nullptr == MainRoadFloor)
+		{
+			continue;
+		}
+
+		ATile* MainRoadTile = MainRoadFloor->spwanTile(GetWorld());
+		if (nullptr == MainRoadTile)
+		{
+			continue;
+		}
+
+		MainRoadTile->WallOff();
+		m_vecTile[spawnNumY + i] = MainRoadTile;
+		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
+
+
+		MainRoadFloor = mBSPMap->getFloor(BackPos);
+		if (nullptr == MainRoadFloor)
+		{
+			continue;
+		}
+
+		MainRoadTile = MainRoadFloor->spwanTile(GetWorld());
+		if (nullptr == MainRoadTile)
+		{
+			continue;
+		}
+
+		MainRoadTile->WallOff();
+		m_vecTile[m_vecTile.size() - spawnNumX - i] = MainRoadTile;
+		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
+	}
+}
+void APath::CreatePathDerectionY(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY)
+{
+	if (nullptr == mBSPMap)
+	{
+		return;
+	}
+
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+
+	for (int i = 0; i < spawnNumY; ++i)
+	{
+		correntPosY = mStartPos.Y < mEndPos.Y ? (i + 1) : -(i + 1);
+
+		FVector FrontPos = mStartPos + FVector(correntPosX, correntPosY, 0);
+		FVector BackPos = mEndPos - FVector(correntPosX, correntPosY, 0);
+
+		Floor* MainRoadFloor = mBSPMap->getFloor(FrontPos);
+		if (nullptr == MainRoadFloor)
+		{
+			continue;
+		}
+
+		ATile* MainRoadTile = MainRoadFloor->spwanTile(GetWorld());
+		if (nullptr == MainRoadTile)
+		{
+			continue;
+		}
+
+		MainRoadTile->WallOff();
+		m_vecTile[spawnNumX + i] = MainRoadTile;
+		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
+
+		MainRoadFloor = mBSPMap->getFloor(BackPos);
+		if (nullptr == MainRoadFloor)
+		{
+			continue;
+		}
+
+		MainRoadTile = MainRoadFloor->spwanTile(GetWorld());
+		if (nullptr == MainRoadTile)
+		{
+			continue;
+		}
+		MainRoadTile->WallOff();
+		m_vecTile[m_vecTile.size() - i - 1] = MainRoadTile;
+		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
+	}
 }
 
 void APath::reset()

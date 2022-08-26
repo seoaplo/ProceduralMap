@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "EngineMinimal.h"
+#include "CoreMinimal.h"
 #include <map>
 #include <vector>
 

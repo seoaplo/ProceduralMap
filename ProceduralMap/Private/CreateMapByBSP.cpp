@@ -41,37 +41,43 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 		return;
 	}
 
-	if (nullptr == Tile)
+	if (nullptr == mTileClass)
 	{
 		return;
 	}
 
-	ATile* SpawnBasicTile = GetWorld()->SpawnActor<ATile>(Tile, FVector::ZeroVector, FRotator::ZeroRotator);
+	ATile* SpawnBasicTile = GetWorld()->SpawnActor<ATile>(mTileClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	if (nullptr == SpawnBasicTile)
 	{
 		return;
 	}
+	mTileSize = SpawnBasicTile->getTileScale();
+	SpawnBasicTile->Destroy();
 
 	reset();
 	CreateBSP();
 
-	FVector TileSize = SpawnBasicTile->getTileScale();
 
+
+	mFloorArray.resize(m_MaxSize * m_MaxSize);
 	for (int RowIndex = 0; RowIndex < mBSP.getRowNum(); ++RowIndex)
 	{
 		for (int ColIndex = 0; ColIndex < mBSP.getColNum(); ++ColIndex)
 		{
-			FVector SpawnPos = FVector(ColIndex * TileSize.X, RowIndex * TileSize.Y, 0);
-			ATile* SpawnTile = GetWorld()->SpawnActor<ATile>(Tile, SpawnPos, FRotator::ZeroRotator);
+			FVector SpawnPos = FVector(ColIndex * mTileSize.X, RowIndex * mTileSize.Y, 0);
+			int index = (RowIndex * m_MaxSize) + ColIndex;
 
-			if (nullptr == SpawnTile)
+			if (mFloorArray.size() <= index)
 			{
-				continue;
+				return;
 			}
-			SpawnTile->SetPos(FVector(ColIndex, RowIndex, 0));
-			mTileArray.Add(SpawnTile);
+
+			mFloorArray[index].Init(SpawnPos, FVector(ColIndex, RowIndex, 0), mTileClass);
 		}
 	}
+
+
+
 
 	std::vector<BSP_Node*>& NodeArray = mBSP.getLeafNodePtrArray();
 	
@@ -117,8 +123,6 @@ void UCreateMapByBSP::process(int MaxSize, int MinimumSize, int RatioStart, int 
 			SpawnPath->CreatePath(this, mLeafNodeSection[FirstIndex]->getRoom(), mLeafNodeSection[SecontIndex]->getRoom());
 		}
 	}
-
-	SpawnBasicTile->Destroy();
 }
 
 void UCreateMapByBSP::reset()
@@ -131,16 +135,6 @@ void UCreateMapByBSP::reset()
 			(*iter)->Destroy();
 		}
 	}
-	mLeafNodeSection.Reset();
-
-	for (auto iter = mTileArray.begin(); iter != mTileArray.end(); ++iter)
-	{
-		if (nullptr != (*iter))
-		{
-			(*iter)->Destroy();
-		}
-	}
-	mTileArray.Reset();
 
 	for (auto iter = mPathActorArray.begin(); iter != mPathActorArray.end(); ++iter)
 	{

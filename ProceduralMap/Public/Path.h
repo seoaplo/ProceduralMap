@@ -17,8 +17,10 @@ private:
 	TSubclassOf<ATile> m_TileClass;
 	std::vector<ATile*> m_vecTile;
 
-	FVector StartPos;
-	FVector EndPos;
+	UCreateMapByBSP* mBSPMap;
+
+	FVector mStartPos;
+	FVector mEndPos;
 
 public:
 	void CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const ARoom* const End);
@@ -26,6 +28,9 @@ public:
 	void CreatePath(UCreateMapByBSP* BSPMap, APath* Start, APath* End);
 
 	void reset();
+private:
+	void CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY);
+	void CreatePathDerectionY(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY);
 public:	
 	// Sets default values for this actor's properties
 	APath();
