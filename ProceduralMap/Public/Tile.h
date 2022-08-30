@@ -7,6 +7,17 @@
 #include "GameFramework/Actor.h"
 #include "Tile.generated.h"
 
+UENUM(BlueprintType)
+enum class TILE_WALL_STATE : uint8
+{
+	TW_NONE UMETA(DisplayName = "NONE"),
+	TW_TOP UMETA(DisplayName = "TOP"),
+	TW_BOTTOM UMETA(DisplayName = "BOTTOM"),
+	TW_LEFT UMETA(DisplayName = "LEFT"),
+	TW_RIGHT UMETA(DisplayName = "RIGHT"),
+};
+
+
 UCLASS(ClassGroup = (Custom), Blueprintable, meta = (BlueprintSpawnableComponent))
 class PROCEDURALMAP_API ATile : public AActor
 {
@@ -16,6 +27,8 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UBoxComponent* m_TileBox;
+
+	TILE_WALL_STATE mWallState;
 
 public:
 	FVector getTileScale() const
@@ -43,10 +56,15 @@ public:
 		Pos = _Pos;
 	}
 
+	TILE_WALL_STATE getState()
+	{
+		return mWallState;
+	}
+
 public:	
 	// Sets default values for this actor's properties
 	ATile();
-
+	void ChangeWallState(TILE_WALL_STATE WallState);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -57,5 +75,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void WallOff();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void _ChangeWallState(TILE_WALL_STATE WallState);
 
 };

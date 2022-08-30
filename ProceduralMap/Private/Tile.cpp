@@ -30,3 +30,8 @@ void ATile::Tick(float DeltaTime)
 
 }
 
+void ATile::ChangeWallState(TILE_WALL_STATE WallState)
+{
+	mWallState = WallState;
+	_ChangeWallState(mWallState);
+}
