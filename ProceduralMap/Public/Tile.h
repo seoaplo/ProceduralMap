@@ -7,16 +7,17 @@
 #include "GameFramework/Actor.h"
 #include "Tile.generated.h"
 
-UENUM(BlueprintType)
-enum class TILE_WALL_STATE : uint8
+UENUM(Meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class TILE_WALL_STATE
 {
-	TW_NONE UMETA(DisplayName = "NONE"),
-	TW_TOP UMETA(DisplayName = "TOP"),
-	TW_BOTTOM UMETA(DisplayName = "BOTTOM"),
-	TW_LEFT UMETA(DisplayName = "LEFT"),
-	TW_RIGHT UMETA(DisplayName = "RIGHT"),
+	TW_NONE		= 0x00,
+	TW_TOP		= 0x01,
+	TW_BOTTOM	= 0x02,
+	TW_LEFT		= 0x04,
+	TW_RIGHT	= 0x08,
 };
 
+ENUM_CLASS_FLAGS(TILE_WALL_STATE);
 
 UCLASS(ClassGroup = (Custom), Blueprintable, meta = (BlueprintSpawnableComponent))
 class PROCEDURALMAP_API ATile : public AActor
@@ -28,8 +29,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UBoxComponent* m_TileBox;
 
-	TILE_WALL_STATE mWallState;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, BlueprintGetter = getStateInt, Meta = (Bitmask, BitmaskEnum = "TILE_WALL_STATE"))
+	int32 mWallStateint;
 
+	TILE_WALL_STATE mWallState;
 public:
 	FVector getTileScale() const
 	{
@@ -61,6 +64,12 @@ public:
 		return mWallState;
 	}
 
+	UFUNCTION(BlueprintGetter)
+	int32 getStateInt()
+	{
+		return mWallStateint;
+	}
+
 public:	
 	// Sets default values for this actor's properties
 	ATile();
@@ -73,10 +82,22 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintCallable)
 	void WallOff();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void _ChangeWallState(TILE_WALL_STATE WallState);
+	void _WallOff();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void _OnWallLeft();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void _OnWallRight();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void _OnWallTop();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void _OnWallBottom();
 
 };

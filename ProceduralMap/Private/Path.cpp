@@ -79,11 +79,15 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, const ARoom* const Start, const 
 	if (TileNum.X > TileNum.Y)
 	{
 		CreatePathDerectionX(SpawnNumX, 0, CorrectionPosX, CorrectionPosY);
+		CreatePathMiddle(CorrectionPosX, CorrectionPosY);
+
 		CreatePathDerectionY(SpawnNumX, SpawnNumY, CorrectionPosX, CorrectionPosY);
 	}
 	else
 	{
 		CreatePathDerectionY(0, SpawnNumY, CorrectionPosX, CorrectionPosY);
+		CreatePathMiddle(CorrectionPosX, CorrectionPosY);
+
 		CreatePathDerectionX(SpawnNumX, SpawnNumY, CorrectionPosX, CorrectionPosY);
 	}
 }
@@ -94,6 +98,42 @@ void APath::CreatePath(UCreateMapByBSP* BSPMap, ARoom* Start, APath* End)
 void APath::CreatePath(UCreateMapByBSP* BSPMap, APath* Start, APath* End)
 {
 
+}
+
+void APath::CreatePathMiddle(int correntPosX, int correntPosY)
+{
+	FVector FrontPos = mStartPos + FVector(correntPosX, correntPosY, 0);
+	FVector BackPos = mEndPos - FVector(correntPosX, correntPosY, 0);
+
+	Floor* MainRoadFloor = mBSPMap->getFloor(FrontPos);
+	if (nullptr == MainRoadFloor)
+	{
+		return;
+	}
+
+	ATile* MainRoadTile = MainRoadFloor->getTile();
+	if (nullptr == MainRoadTile)
+	{
+		return;
+	}
+
+	TILE_WALL_STATE WallState = TILE_WALL_STATE::TW_NONE;
+	MainRoadTile->ChangeWallState(WallState);
+	MainRoadTile->WallOff();
+
+	MainRoadFloor = mBSPMap->getFloor(BackPos);
+	if (nullptr == MainRoadFloor)
+	{
+		return;
+	}
+
+	MainRoadTile = MainRoadFloor->getTile();
+	if (nullptr == MainRoadTile)
+	{
+		return;
+	}
+	MainRoadTile->ChangeWallState(WallState);
+	MainRoadTile->WallOff();
 }
 
 void APath::CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY)
@@ -124,7 +164,14 @@ void APath::CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX,
 			continue;
 		}
 
+		TILE_WALL_STATE WallState = MainRoadTile->getState();
+		if (TILE_WALL_STATE::TW_NONE != WallState)
+		{
+			WallState = TILE_WALL_STATE::TW_NONE;
+			MainRoadTile->ChangeWallState(WallState);
+		}
 		MainRoadTile->WallOff();
+
 		m_vecTile[spawnNumY + i] = MainRoadTile;
 		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
 
@@ -141,7 +188,12 @@ void APath::CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX,
 			continue;
 		}
 
+		if (TILE_WALL_STATE::TW_NONE != WallState)
+		{
+			MainRoadTile->ChangeWallState(WallState);
+		}
 		MainRoadTile->WallOff();
+
 		m_vecTile[m_vecTile.size() - spawnNumX - i] = MainRoadTile;
 		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
 	}
@@ -174,7 +226,14 @@ void APath::CreatePathDerectionY(int spawnNumX, int spawnNumY, int& correntPosX,
 			continue;
 		}
 
+		TILE_WALL_STATE WallState = MainRoadTile->getState();
+		if (TILE_WALL_STATE::TW_NONE != WallState)
+		{
+			WallState = TILE_WALL_STATE::TW_NONE;
+			MainRoadTile->ChangeWallState(WallState);
+		}
 		MainRoadTile->WallOff();
+
 		m_vecTile[spawnNumX + i] = MainRoadTile;
 		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
 
@@ -189,7 +248,13 @@ void APath::CreatePathDerectionY(int spawnNumX, int spawnNumY, int& correntPosX,
 		{
 			continue;
 		}
+
+		if (TILE_WALL_STATE::TW_NONE != WallState)
+		{
+			MainRoadTile->ChangeWallState(WallState);
+		}
 		MainRoadTile->WallOff();
+
 		m_vecTile[m_vecTile.size() - i - 1] = MainRoadTile;
 		MainRoadTile->AttachToActor(this, AttachmentTransformRules);
 	}

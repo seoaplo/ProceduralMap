@@ -56,6 +56,14 @@ void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTilePos, FVector En
 		{
 			int Row = (Switch == 0) ? WallPos.Min.Y : WallPos.Max.Y;
 			TILE_WALL_STATE WallState = (Switch == 0) ? TILE_WALL_STATE::TW_TOP : TILE_WALL_STATE::TW_BOTTOM;
+			if (Col == WallPos.Min.X)
+			{
+				WallState |= TILE_WALL_STATE::TW_LEFT;
+			}
+			else if (Col == WallPos.Max.X)
+			{
+				WallState |= TILE_WALL_STATE::TW_RIGHT;
+			}
 
 			Floor* TargetFloor = BSPMap->getFloor(FVector(Col, Row, 0));
 			if (nullptr == TargetFloor)
@@ -80,7 +88,17 @@ void ARoom::CreateRoom(UCreateMapByBSP* BSPMap, FVector StartTilePos, FVector En
 		for (int Switch = 0; Switch < 2; ++Switch)
 		{
 			int Col = (Switch == 0) ? WallPos.Min.X : WallPos.Max.X;
+
 			TILE_WALL_STATE WallState = (Switch == 0) ? TILE_WALL_STATE::TW_LEFT : TILE_WALL_STATE::TW_RIGHT;
+			if (Row == WallPos.Min.Y)
+			{
+				WallState |= TILE_WALL_STATE::TW_TOP;
+			}
+			else if (Row == WallPos.Max.Y)
+			{
+				WallState |= TILE_WALL_STATE::TW_BOTTOM;
+			}
+
 
 			Floor* TargetFloor = BSPMap->getFloor(FVector(Col, Row, 0));
 			if (nullptr == TargetFloor)

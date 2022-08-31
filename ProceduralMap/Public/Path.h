@@ -29,6 +29,7 @@ public:
 
 	void reset();
 private:
+	void CreatePathMiddle(int correntPosX, int correntPosY);
 	void CreatePathDerectionX(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY);
 	void CreatePathDerectionY(int spawnNumX, int spawnNumY, int& correntPosX, int& correntPosY);
 public:	
